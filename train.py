@@ -27,6 +27,7 @@ parser.add_argument('--epochs', type=int, default=100000, metavar='N', help='num
 parser.add_argument('--no-cuda', action='store_true', default=False, help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=100, metavar='N', help='how many batches to wait before logging training status')
+parser.add_argument('--model_path', type=str, help='Model weights if needed.', default='./checkpoint/autoencoder.t7')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -49,21 +50,21 @@ images_A += images_B.mean(axis=(0, 1, 2)) - images_A.mean(axis=(0, 1, 2))
 model = Autoencoder()
 
 print('===> Try resume from checkpoint')
-# if os.path.isdir('checkpoint'):
-#     try:
-#         if args.cuda is True:
-#             checkpoint = torch.load('./checkpoint/autoencoder.t7')
-#         else:
-#             checkpoint = torch.load('./checkpoint/autoencoder.t7', map_location='cpu')
+if os.path.isdir('checkpoint'):
+    try:
+        if args.cuda is True:
+            checkpoint = torch.load(args.model_path)
+        else:
+            checkpoint = torch.load(args.model_path, map_location='cpu')
 
-#         model.load_state_dict(checkpoint['state'])
-#         start_epoch = checkpoint['epoch']
-#         print('===> Load last checkpoint data')
-#     except FileNotFoundError:
-#         print('Can\'t found autoencoder.t7')
-# else:
-start_epoch = 0
-print('===> Start from scratch')
+        model.load_state_dict(checkpoint['state'])
+        start_epoch = checkpoint['epoch']
+        print('===> Load last checkpoint data')
+    except FileNotFoundError:
+        print('Can\'t find path:' + args.model_path)
+else:
+    start_epoch = 0
+    print('===> Start from scratch')
 
 if args.cuda:
     model.cuda()
